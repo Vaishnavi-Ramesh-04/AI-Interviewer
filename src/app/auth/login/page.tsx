@@ -1,144 +1,173 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Bot, ArrowLeft } from "lucide-react";
-import { account } from "@/lib/appwrite";
-import { AppwriteException } from "appwrite";
+import { useRouter } from "next/navigation";
+import { account, ID } from "@/lib/appwrite";
+import Link from "next/link";
+import { Mail, Lock, EyeOff, Eye, LogIn } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
+    setError("");
 
     try {
       try {
-        // Clear active session first if one is stuck
         await account.deleteSession("current");
       } catch (e) {
-        // Ignore if no session
+        // No active session
       }
-
-      await account.createEmailPasswordSession(formData.email, formData.password);
+      
+      await account.createEmailPasswordSession(email, password);
       router.push("/dashboard");
     } catch (err: any) {
-      if (err instanceof AppwriteException) {
-        if (err.type === "user_session_already_exists") {
-           router.push("/dashboard");
-        } else {
-           setError(err.message);
-        }
-      } else {
-        setError(err.message || "Failed to log in.");
+      if (err?.type === "user_session_already_exists") {
+         router.push("/dashboard");
+         return;
       }
-    } finally {
+      if (err?.message?.toLowerCase().includes("user missing")) {
+         setError("No account found with this email. Please register first.");
+      } else if (err?.message?.toLowerCase().includes("invalid credentials")) {
+         setError("Invalid email or password.");
+      } else {
+         setError(err.message || "Failed to log in.");
+      }
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col justify-center px-6 py-12 lg:px-8 bg-background relative overflow-hidden">
-      <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80" aria-hidden="true">
-        <div className="relative right-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#3b82f6] to-[#8b5cf6] opacity-20 sm:right-[calc(50%-30rem)] sm:w-[72.1875rem]"></div>
-      </div>
+    <div className="min-h-screen relative flex items-center justify-center font-sans overflow-hidden">
+      
+      {/* Background Image: Blue Sky & Clouds */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center"
+        style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1534088568595-a066f410bcda?q=80&w=2500&auto=format&fit=crop')",
+        }}
+      ></div>
+      {/* Soft overlay to ensure readability */}
+      <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px] z-0"></div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md absolute top-8 left-8">
-         <Link href="/" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to home
-         </Link>
-      </div>
+      {/* Decorative Concentric Arcs */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border-[1px] border-white/40 rounded-full z-0 opacity-50"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] border-[1px] border-white/20 rounded-full z-0 opacity-30"></div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <div className="rounded-xl bg-primary/10 p-3 ring-1 ring-primary/20">
-            <Bot className="w-8 h-8 text-primary" />
-          </div>
+      {/* Top Left Logo */}
+      <div className="absolute top-8 left-8 z-20 flex items-center gap-2 cursor-pointer" onClick={() => router.push("/")}>
+        <div className="bg-black text-white p-1.5 rounded-lg flex items-center justify-center">
+           <div className="grid grid-cols-2 gap-[2px]">
+             <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
+             <div className="w-1.5 h-1.5 bg-white/60 rounded-sm"></div>
+             <div className="w-1.5 h-1.5 bg-white rounded-sm"></div>
+             <div className="w-1.5 h-1.5 bg-white/60 rounded-sm"></div>
+           </div>
         </div>
-        <h2 className="mt-6 text-center text-2xl font-bold leading-9 tracking-tight text-foreground" style={{ fontFamily: "var(--font-heading)" }}>
-          Sign in to AuraMock
-        </h2>
-        <p className="mt-2 text-center text-sm text-muted-foreground">
-          Welcome back! Let's get you ready for your next interview.
-        </p>
+        <span className="font-bold text-lg text-black tracking-tight">AuraMock</span>
       </div>
 
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-        <div className="glass rounded-2xl px-6 py-10 shadow border sm:px-12 bg-card/50">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+      {/* Login Card Container */}
+      <div className="relative z-10 w-full max-w-[420px] px-6">
+        <div className="bg-gradient-to-b from-blue-50/90 to-white/95 backdrop-blur-xl rounded-[32px] p-8 md:p-10 shadow-2xl border border-white/50">
+          
+          {/* Card Header Content */}
+          <div className="flex flex-col items-center text-center mb-8">
+            <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-6">
+              <LogIn className="w-6 h-6 text-black" strokeWidth={2.5} />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Sign in with email</h1>
+            <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-[250px]">
+              Log in to your account and start practicing your interviews with our AI.
+            </p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            
             {error && (
-              <div className="rounded-md bg-destructive/10 p-4">
-                <div className="text-sm text-destructive">{error}</div>
+              <div className="bg-red-50 text-red-600 p-3 rounded-xl text-xs font-semibold text-center border border-red-100">
+                {error}
               </div>
             )}
 
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium leading-6 text-foreground">
-                Email address
-              </label>
-              <div className="mt-2">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="block w-full rounded-md border-0 py-2.5 px-4 text-foreground shadow-sm ring-1 ring-inset ring-border bg-input/50 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
-                  placeholder="john@example.com"
-                />
-              </div>
+            {/* Email Input */}
+            <div className="relative flex items-center">
+               <div className="absolute left-4 opacity-50"><Mail className="w-4 h-4 text-gray-700" /></div>
+               <input
+                 type="email"
+                 required
+                 value={email}
+                 onChange={(e) => setEmail(e.target.value)}
+                 className="w-full bg-gray-100/80 border border-transparent rounded-xl py-3.5 pl-11 pr-4 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-blue-100 transition-all"
+                 placeholder="Email"
+                 autoComplete="email"
+               />
             </div>
 
-            <div>
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="block text-sm font-medium leading-6 text-foreground">
-                  Password
-                </label>
-                <div className="text-sm">
-                  <a href="#" className="font-semibold text-primary hover:text-primary/80 transition-colors">
-                    Forgot password?
-                  </a>
-                </div>
-              </div>
-              <div className="mt-2">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="block w-full rounded-md border-0 py-2.5 px-4 text-foreground shadow-sm ring-1 ring-inset ring-border bg-input/50 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
-                  placeholder="••••••••"
-                />
-              </div>
+            {/* Password Input */}
+            <div className="relative flex items-center">
+               <div className="absolute left-4 opacity-50"><Lock className="w-4 h-4 text-gray-700" /></div>
+               <input
+                 type={showPassword ? "text" : "password"}
+                 required
+                 value={password}
+                 onChange={(e) => setPassword(e.target.value)}
+                 className="w-full bg-gray-100/80 border border-transparent rounded-xl py-3.5 pl-11 pr-12 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:bg-white focus:border-gray-200 focus:ring-4 focus:ring-blue-100 transition-all"
+                 placeholder="Password"
+                 autoComplete="current-password"
+               />
+               <button 
+                 type="button" 
+                 onClick={() => setShowPassword(!showPassword)}
+                 className="absolute right-4 opacity-50 hover:opacity-100 transition-opacity"
+               >
+                 {showPassword ? <Eye className="w-4 h-4 text-gray-700" /> : <EyeOff className="w-4 h-4 text-gray-700" />}
+               </button>
             </div>
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex w-full justify-center rounded-md bg-primary px-3 py-2.5 text-sm font-semibold leading-6 text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "Signing in..." : "Sign in"}
-              </button>
+            <div className="flex justify-end pt-1">
+              <a href="#" className="text-xs font-bold text-gray-600 hover:text-black transition-colors">
+                Forgot password?
+              </a>
             </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#1a1a1a] text-white rounded-xl py-3.5 text-sm font-bold shadow-md hover:bg-black hover:shadow-lg focus:ring-4 focus:ring-gray-200 transition-all disabled:opacity-50 mt-2"
+            >
+              {loading ? "Signing in..." : "Get Started"}
+            </button>
           </form>
 
-          <p className="mt-10 text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <Link href="/auth/register" className="font-semibold leading-6 text-primary hover:text-primary/80 transition-colors">
-              Sign up today
-            </Link>
+          {/* Social Logins Splitter */}
+          <div className="mt-8 relative flex items-center justify-center">
+            <div className="absolute w-full border-t border-gray-200"></div>
+            <span className="relative bg-white px-3 text-[10px] uppercase font-bold text-gray-400 tracking-wider">Or sign in with</span>
+          </div>
+
+          <div className="mt-6 flex items-center justify-center gap-3">
+             <button type="button" className="flex-1 bg-white border border-gray-100 shadow-sm rounded-xl py-3 flex justify-center items-center hover:bg-gray-50 transition-colors">
+                <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+             </button>
+             <button type="button" className="flex-1 bg-white border border-gray-100 shadow-sm rounded-xl py-3 flex justify-center items-center hover:bg-gray-50 transition-colors">
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+             </button>
+             <button type="button" className="flex-1 bg-white border border-gray-100 shadow-sm rounded-xl py-3 flex justify-center items-center hover:bg-gray-50 transition-colors">
+                <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.04 2.26-.74 3.58-.79 2.12-.04 3.53.64 4.5 1.58-3.26 1.84-2.61 5.71.69 6.84-1.04 2.59-2.31 4.29-3.85 4.54zm-2.87-14.1c-.81-1.22-2.21-1.9-3.43-1.87-.22 1.53.51 2.92 1.38 3.86 1.05 1.14 2.47 1.75 3.65 1.57-.14-1.48-.68-2.6-1.6-3.56z"/></svg>
+             </button>
+          </div>
+
+          <p className="mt-8 text-center text-xs text-gray-500 font-medium">
+            Don't have an account? <Link href="/auth/register" className="text-black font-bold hover:underline">Register here</Link>
           </p>
         </div>
       </div>
