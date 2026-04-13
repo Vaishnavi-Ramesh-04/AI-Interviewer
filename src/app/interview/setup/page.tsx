@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Upload, FileText, Briefcase, GraduationCap } from "lucide-react";
+import { ArrowLeft, Upload, FileText, Briefcase, GraduationCap, Play } from "lucide-react";
 import Link from "next/link";
 
 export default function InterviewSetupPage() {
@@ -31,9 +31,11 @@ export default function InterviewSetupPage() {
         body: formData,
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to parse file");
+      const data = await res.json().catch(() => ({}));
 
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to parse file. Please paste text instead.");
+      }
       setCvText(data.text);
     } catch (err: any) {
       setError(err.message);
@@ -50,7 +52,7 @@ export default function InterviewSetupPage() {
       return;
     }
 
-    // Save context to sessionStorage so the Interview page can pick it up
+    // Save context to sessionStorage
     sessionStorage.setItem("interview_role", role);
     sessionStorage.setItem("interview_education", education);
     sessionStorage.setItem("interview_cv", cvText || "");
@@ -59,68 +61,79 @@ export default function InterviewSetupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground py-12 px-4 shadow-inner">
-      <div className="max-w-3xl mx-auto">
-        <Link href="/dashboard" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-8">
+    <div className="min-h-screen bg-background text-foreground py-12 px-4 shadow-inner relative overflow-hidden font-sans">
+      
+      {/* Background Dots */}
+      <div className="absolute inset-0 bg-dot-pattern opacity-[0.3] z-0"></div>
+
+      <div className="max-w-3xl mx-auto relative z-10 w-full">
+        <Link href="/dashboard" className="inline-flex items-center text-sm font-semibold text-muted-foreground hover:text-black transition-colors mb-8 bg-white px-4 py-2 rounded-full border shadow-sm">
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
         </Link>
         
-        <header className="mb-10">
-          <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ fontFamily: "var(--font-heading)" }}>Configure Your Interview</h1>
-          <p className="text-muted-foreground">Tell our AI about the role, your background, and upload your CV so it can generate highly relevant technical and behavioral questions.</p>
+        <header className="mb-10 text-center">
+          <div className="mx-auto w-14 h-14 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-6">
+            <FileText className="w-6 h-6 text-primary" strokeWidth={2.5} />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight mb-3">Configure Your Interview</h1>
+          <p className="text-muted-foreground text-sm max-w-lg mx-auto">
+            Tell our AI about the role, your background, and upload your CV so it can generate highly relevant technical and behavioral questions.
+          </p>
         </header>
 
         <form className="space-y-8" onSubmit={handleStart}>
           {error && (
-            <div className="bg-destructive/10 text-destructive p-4 rounded-md text-sm border border-destructive/20">
+            <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-semibold border border-red-100 text-center">
               {error}
             </div>
           )}
 
-          <div className="glass p-8 rounded-2xl border space-y-6">
+          <div className="bg-white/90 backdrop-blur-md p-8 md:p-10 rounded-[32px] shadow-xl border border-gray-100 space-y-8">
             
-            {/* Role */}
-            <div>
-              <label htmlFor="role" className="flex items-center text-sm font-medium mb-2">
-                <Briefcase className="w-4 h-4 mr-2 text-primary" /> Target Role / Position
-              </label>
-              <input
-                id="role"
-                type="text"
-                placeholder="e.g. Senior Frontend Engineer, Product Manager"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                required
-                className="w-full bg-input/50 border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               {/* Role */}
+               <div>
+                 <label htmlFor="role" className="flex items-center text-sm font-bold mb-3">
+                   <Briefcase className="w-4 h-4 mr-2 text-primary" /> Target Role
+                 </label>
+                 <input
+                   id="role"
+                   type="text"
+                   placeholder="e.g. Frontend Engineer"
+                   value={role}
+                   onChange={(e) => setRole(e.target.value)}
+                   required
+                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all"
+                 />
+               </div>
+
+               {/* Education */}
+               <div>
+                 <label htmlFor="education" className="flex items-center text-sm font-bold mb-3">
+                   <GraduationCap className="w-4 h-4 mr-2 text-primary" /> Education Level
+                 </label>
+                 <input
+                   id="education"
+                   type="text"
+                   placeholder="e.g. B.S. Comp Sci"
+                   value={education}
+                   onChange={(e) => setEducation(e.target.value)}
+                   required
+                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all"
+                 />
+               </div>
             </div>
 
-            {/* Education */}
-            <div>
-              <label htmlFor="education" className="flex items-center text-sm font-medium mb-2">
-                <GraduationCap className="w-4 h-4 mr-2 text-primary" /> Level of Education
-              </label>
-              <input
-                id="education"
-                type="text"
-                placeholder="e.g. B.S. in Computer Science, Self-taught"
-                value={education}
-                onChange={(e) => setEducation(e.target.value)}
-                required
-                className="w-full bg-input/50 border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-              />
-            </div>
-
-            <hr className="border-border/50" />
+            <hr className="border-gray-100" />
 
             {/* CV Upload */}
             <div>
-              <label className="flex items-center text-sm font-medium mb-2">
-                <FileText className="w-4 h-4 mr-2 text-primary" /> Upload Resume / CV (Optional)
+              <label className="flex items-center text-sm font-bold mb-2">
+                <Upload className="w-4 h-4 mr-2 text-primary" /> Upload Resume / CV (Optional)
               </label>
-              <p className="text-xs text-muted-foreground mb-4">We extract text from your PDF to provide context about past projects to the AI.</p>
+              <p className="text-xs text-gray-500 mb-4 font-medium">We extract text from your PDF to contextually enrich questions.</p>
               
-              <div className="border-2 border-dashed border-border rounded-xl p-8 text-center relative hover:bg-muted/50 transition-colors">
+              <div className="border-2 border-dashed border-gray-300 rounded-[20px] p-8 text-center relative hover:bg-gray-50 transition-colors bg-white">
                 <input
                   type="file"
                   accept=".pdf,.txt"
@@ -133,38 +146,40 @@ export default function InterviewSetupPage() {
                   ) : cvFile ? (
                     <FileText className="w-8 h-8 text-primary mb-2" />
                   ) : (
-                    <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                    <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-2">
+                       <Upload className="w-6 h-6 text-primary" />
+                    </div>
                   )}
                   
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-bold text-gray-900">
                     {parsing ? "Parsing document..." : cvFile ? `Selected: ${cvFile.name}` : "Click or drag file to upload"}
                   </span>
-                  {!cvFile && !parsing && <span className="text-xs text-muted-foreground">PDF or TXT up to 5MB</span>}
+                  {!cvFile && !parsing && <span className="text-xs text-gray-500 font-medium">PDF or TXT up to 5MB</span>}
                 </div>
               </div>
               
               {/* Fallback Text Area */}
-              <div className="mt-4">
-                <p className="text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wider">Or paste CV text directly:</p>
+              <div className="mt-6">
+                <p className="text-[10px] font-bold mb-2 text-gray-400 uppercase tracking-wider">Or paste CV text directly:</p>
                 <textarea
                   value={cvText}
                   onChange={(e) => setCvText(e.target.value)}
-                  placeholder="Paste the text content of your resume here..."
+                  placeholder="Paste the text content of your resume here to bypass PDF parser..."
                   rows={4}
-                  className="w-full bg-input/50 border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-y"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all resize-y"
                 />
               </div>
             </div>
 
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-center mt-8">
             <button
               type="submit"
               disabled={parsing}
-              className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold hover:bg-primary/90 transition-all disabled:opacity-50"
+              className="bg-[#1a1a1a] text-white px-10 py-4 rounded-full font-bold shadow-xl hover:bg-black hover:-translate-y-0.5 transition-all disabled:opacity-50 flex items-center"
             >
-              Initialize Interview Engine
+              Initialize Interview Engine <Play className="w-4 h-4 ml-2 fill-current" />
             </button>
           </div>
         </form>

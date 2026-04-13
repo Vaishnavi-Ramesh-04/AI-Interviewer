@@ -29,7 +29,6 @@ export default function Home() {
           <Link href="#features" className="hover:text-foreground transition-colors">Features</Link>
           <Link href="#solutions" className="hover:text-foreground transition-colors">Solutions</Link>
           <Link href="#resources" className="hover:text-foreground transition-colors">Resources</Link>
-          <Link href="#pricing" className="hover:text-foreground transition-colors">Pricing</Link>
         </div>
 
         <div className="flex items-center gap-4">
@@ -400,72 +399,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 
-        ========================================
-        PRICING 
-        ========================================
-      */}
-      <section className="py-24 max-w-[1000px] mx-auto px-6 text-center">
-        <div className="inline-block px-3 py-1 rounded-full border bg-card text-xs font-medium text-muted-foreground mb-6">
-          Pricing
-        </div>
-        <h2 className="text-3xl md:text-4xl font-bold mb-16">Simple pricing plans</h2>
 
-        <div className="flex flex-col md:flex-row justify-center items-center gap-6 md:gap-4 lg:gap-8">
-           
-           {/* Basic Plan */}
-           <div className="bg-card w-full md:w-[300px] border shadow-sm rounded-3xl p-8 text-left h-fit mt-12 md:mt-0">
-              <h3 className="text-lg font-semibold">Basic plan</h3>
-              <p className="text-xs text-muted-foreground mb-6">Perfect for individuals.</p>
-              <div className="text-4xl font-bold mb-6">$0<span className="text-lg text-muted-foreground font-normal">/mo</span></div>
-              <button className="w-full py-2.5 rounded-full border border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-colors mb-8">
-                Get started
-              </button>
-              <ul className="space-y-3 text-sm text-foreground">
-                 <li className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-3 text-muted-foreground" /> All product features</li>
-                 <li className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-3 text-muted-foreground" /> Unlimited interviews</li>
-                 <li className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-3 text-muted-foreground" /> Priority support</li>
-              </ul>
-              <a href="#" className="text-xs text-muted-foreground underline mt-6 block">Learn more</a>
-           </div>
-
-           {/* Pro Plan (Highlighted) */}
-           <div className="bg-primary text-primary-foreground w-full md:w-[320px] shadow-2xl rounded-3xl p-8 text-left relative z-10 transform md:-translate-y-8">
-              <div className="absolute -top-4 -right-4 bg-yellow-400 text-yellow-900 w-10 h-10 flex items-center justify-center rounded-xl shadow-lg rotate-12">⚡</div>
-              <h3 className="text-lg font-semibold">Pro plan</h3>
-              <p className="text-xs text-primary-foreground/80 mb-6">Ideal for active job seekers.</p>
-              <div className="text-4xl font-bold mb-2">$9<span className="text-lg font-normal opacity-80">/mo</span></div>
-              <p className="text-xs font-semibold mb-6">Best choice</p>
-              <button className="w-full py-2.5 rounded-full bg-white text-primary font-semibold text-sm hover:bg-gray-50 transition-colors mb-8 shadow-sm">
-                Get started
-              </button>
-              <ul className="space-y-3 text-sm">
-                 <li className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-3 opacity-90" /> All basic features</li>
-                 <li className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-3 opacity-90" /> Emotion Analytics API</li>
-                 <li className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-3 opacity-90" /> GPT-4 powered feedback</li>
-                 <li className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-3 opacity-90" /> Resume tailoring</li>
-              </ul>
-              <a href="#" className="text-xs underline mt-6 block opacity-80 hover:opacity-100">Learn more</a>
-           </div>
-
-           {/* Advanced Plan */}
-           <div className="bg-card w-full md:w-[300px] border shadow-sm rounded-3xl p-8 text-left h-fit mt-12 md:mt-0">
-              <h3 className="text-lg font-semibold">Advanced plan</h3>
-              <p className="text-xs text-muted-foreground mb-6">Best for organizations.</p>
-              <div className="text-4xl font-bold mb-6">$25<span className="text-lg text-muted-foreground font-normal">/mo</span></div>
-              <button className="w-full py-2.5 rounded-full border bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors mb-8">
-                Get started
-              </button>
-              <ul className="space-y-3 text-sm text-foreground">
-                 <li className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-3 text-muted-foreground" /> All pro features</li>
-                 <li className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-3 text-muted-foreground" /> Unlimited candidates</li>
-                 <li className="flex items-center"><CheckCircle2 className="w-4 h-4 mr-3 text-muted-foreground" /> White-label branding</li>
-              </ul>
-              <a href="#" className="text-xs text-muted-foreground underline mt-6 block">Learn more</a>
-           </div>
-
-        </div>
-      </section>
 
       {/* 
         ========================================
@@ -509,7 +443,6 @@ export default function Home() {
                      <li><a href="#" className="hover:text-primary transition-colors flex items-center -ml-2"><ChevronRight className="w-3 h-3 mr-1 opacity-50"/> Product</a></li>
                      <li><a href="#" className="hover:text-primary transition-colors flex items-center -ml-2"><ChevronRight className="w-3 h-3 mr-1 opacity-50"/> Solutions</a></li>
                      <li><a href="#" className="hover:text-primary transition-colors flex items-center -ml-2"><ChevronRight className="w-3 h-3 mr-1 opacity-50"/> Integrations</a></li>
-                     <li><a href="#" className="hover:text-primary transition-colors flex items-center -ml-2"><ChevronRight className="w-3 h-3 mr-1 opacity-50"/> Price</a></li>
                   </ul>
                </div>
             </div>
