@@ -30,6 +30,19 @@ const ELEVEN_LABS_VOICES: Record<string, ElevenLabsVoice> = {
 };
 
 export default function InterviewPage() {
+  const [showEndDialog, setShowEndDialog] = useState(false);
+  // End Interview handler
+  const handleEndInterview = () => {
+    setShowEndDialog(true);
+  };
+  const confirmEndInterview = () => {
+    sessionStorage.removeItem("interview_role");
+    sessionStorage.removeItem("interview_education");
+    sessionStorage.removeItem("interview_cv");
+    router.push("/dashboard");
+  };
+  // Browser compatibility warning state
+  const [speechApiSupported, setSpeechApiSupported] = useState(true);
   const router = useRouter();
   const [loadingObj, setLoadingObj] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -53,7 +66,8 @@ export default function InterviewPage() {
   const isListeningRef = useRef(false);
   const recognitionRef = useRef<any>(null);
   const finalTranscriptRef = useRef("");
-  const [handsFreeMic, setHandsFreeMic] = useState(true);
+  const [handsFreeMic, setHandsFreeMic] = useState(false);
+    // ...existing code...
   const [speechEnabled, setSpeechEnabled] = useState(true);
   const [voiceMode, setVoiceMode] = useState<VoiceMode>("system");
   const [speechRate, setSpeechRate] = useState(1);
@@ -148,7 +162,12 @@ export default function InterviewPage() {
     // Setup Speech Recognition
     if (typeof window !== "undefined") {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
+      if (!SpeechRecognition) {
+        setSpeechApiSupported(false);
+        setMicError("Your browser does not support speech recognition. Please use Chrome or Edge.");
+        return;
+      } else {
+        setSpeechApiSupported(true);
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
@@ -199,7 +218,10 @@ export default function InterviewPage() {
           isListeningRef.current = false;
           setIsListening(false);
 
-          if (isHardError) {
+          if (errorType === "not-allowed") {
+            setMicError("Microphone permission denied. Please allow mic access in your browser settings and reload the page.");
+            restartDelayRef.current = 2000;
+          } else if (isHardError) {
             setMicError("Mic service unavailable. Please check your browser.");
             restartDelayRef.current = 2000;
           } else if (isRecoverable && errorType === "no-speech") {
@@ -304,7 +326,12 @@ export default function InterviewPage() {
     onDone?: () => void
   ) => {
     window.speechSynthesis.cancel();
-
+  // Stop mic listening while TTS is active
+    if (recognitionRef.current && isListeningRef.current) {
+    recognitionRef.current.stop();
+  }
+  isListeningRef.current = false;
+    setIsListening(false);
     // Split text into sentences for natural pausing
     const sentences = text.split(/([.!?]+)/g).reduce((acc: string[], curr, i) => {
       if (i % 2 === 0) {
@@ -381,7 +408,8 @@ export default function InterviewPage() {
           () => availableVoices.find((v) => v.lang?.toLowerCase().startsWith("en")) || null,
           () => {
             assistantSpeakingRef.current = false;
-            if (handsFreeMic) startListening();
+            // Only restart mic after TTS is fully done
+            if (handsFreeMic) setTimeout(() => startListening(), 250);
           }
         );
         return;
@@ -400,14 +428,16 @@ export default function InterviewPage() {
       sourceNode.connect(audioContext.destination);
       sourceNode.onended = () => {
         assistantSpeakingRef.current = false;
-        if (handsFreeMic) startListening();
+        // Only restart mic after TTS is fully done
+        if (handsFreeMic) setTimeout(() => startListening(), 250);
       };
       sourceNode.start();
     } catch (err) {
       console.error("Eleven Labs TTS critical error:", err);
       speakWithNaturalProsody(text, speechRate, voiceMode, availableVoices, () => null, () => {
         assistantSpeakingRef.current = false;
-        if (handsFreeMic) startListening();
+        // Only restart mic after TTS is fully done
+        if (handsFreeMic) setTimeout(() => startListening(), 250);
       });
     }
   };
@@ -451,7 +481,8 @@ export default function InterviewPage() {
     assistantSpeakingRef.current = true;
     speakWithNaturalProsody(latest.content, speechRate, voiceMode, availableVoices, pickVoice, () => {
       assistantSpeakingRef.current = false;
-      if (handsFreeMic) startListening();
+      // Only restart mic after TTS is fully done
+      if (handsFreeMic) setTimeout(() => startListening(), 250);
     });
 
     return () => {
@@ -460,23 +491,25 @@ export default function InterviewPage() {
   }, [messages, speechEnabled, speechRate, voiceMode, availableVoices, ttsMode, elevenLabsVoice, elevenLabsStability, elevenLabsSimilarity]);
 
   // Voice handler
+  // Unified mic toggle: syncs button and hands-free checkbox
   const toggleListening = () => {
     if (!recognitionRef.current) {
       alert("Voice recognition is not supported in this browser. Try Chrome or Edge.");
       return;
     }
-
     if (handsFreeMic) {
       setHandsFreeMic(false);
-      if (isListeningRef.current) {
+      if (recognitionRef.current && isListeningRef.current) {
         recognitionRef.current.stop();
       }
+      setIsListening(false);
     } else {
       finalTranscriptRef.current = "";
       inputValueRef.current = "";
       setInputValue("");
       setHandsFreeMic(true);
       startListening();
+      setIsListening(true);
     }
   };
 
@@ -625,6 +658,9 @@ export default function InterviewPage() {
                {speechEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
                Voice {speechEnabled ? "On" : "Off"}
              </button>
+
+             {/* End Interview button moved to bottom */}
+                    {/* End Interview Button at Bottom */}
              <div className="text-[10px] font-bold bg-blue-50 text-primary px-3 py-1 rounded-full uppercase tracking-wider">Active</div>
            </div>
         </div>
@@ -727,18 +763,24 @@ export default function InterviewPage() {
         </div>
 
         {/* Input Area */}
+        {/* Browser compatibility warning */}
+        {!speechApiSupported && (
+          <div className="max-w-4xl mx-auto mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg text-center">
+            <b>Warning:</b> Your browser does not support speech recognition. Please use Chrome or Edge for voice features.
+          </div>
+        )}
         <div className="p-4 bg-white border-t border-gray-100 relative z-20 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
           <div className="max-w-4xl mx-auto flex gap-3">
             
             <button
-               type="button"
-               onClick={toggleListening}
-               className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
-                isListening ? "bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-               }`}
-              title={handsFreeMic ? "Disable hands-free mic" : "Enable hands-free mic"}
+              type="button"
+              onClick={toggleListening}
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all ${
+               handsFreeMic ? "bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+              title={handsFreeMic ? "Turn off mic" : "Turn on mic"}
             >
-               {isListening ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
+              {handsFreeMic ? <Mic className="w-6 h-6" /> : <MicOff className="w-6 h-6" />}
             </button>
 
             {micError && (
@@ -834,7 +876,16 @@ export default function InterviewPage() {
                  <input
                    type="checkbox"
                    checked={handsFreeMic}
-                   onChange={(e) => setHandsFreeMic(e.target.checked)}
+                   onChange={(e) => {
+                     setHandsFreeMic(e.target.checked);
+                     if (e.target.checked) {
+                       startListening();
+                       setIsListening(true);
+                     } else if (recognitionRef.current && isListeningRef.current) {
+                       recognitionRef.current.stop();
+                       setIsListening(false);
+                     }
+                   }}
                    className="h-4 w-4"
                  />
                </label>
@@ -849,6 +900,41 @@ export default function InterviewPage() {
                    <option value="elevenlabs">Premium (Eleven Labs)</option>
                  </select>
                </label>
+
+               {/* End Interview Button after Voice Quality */}
+               <div className="flex justify-center mt-4 md:col-span-3 lg:col-span-3">
+                 <button
+                   type="button"
+                   onClick={handleEndInterview}
+                   className="flex items-center gap-1.5 text-[15px] font-bold px-8 py-3 rounded-full uppercase tracking-wider border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 transition-all shadow"
+                   title="End Interview"
+                 >
+                   End Interview
+                 </button>
+               </div>
+      {/* Custom End Interview Confirmation Dialog */}
+      {showEndDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center border">
+            <div className="text-lg font-bold mb-4">End Interview?</div>
+            <div className="text-sm text-gray-600 mb-6">Are you sure you want to end the interview? You will be redirected to the dashboard.</div>
+            <div className="flex gap-4 justify-center">
+              <button
+                className="px-6 py-2 rounded-full font-semibold bg-red-500 text-white hover:bg-red-600 transition-all"
+                onClick={confirmEndInterview}
+              >
+                Yes, End
+              </button>
+              <button
+                className="px-6 py-2 rounded-full font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all"
+                onClick={() => setShowEndDialog(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
                {ttsMode === "elevenlabs" && (
                  <label className="rounded-xl border border-gray-200 bg-blue-50 px-3 py-2">

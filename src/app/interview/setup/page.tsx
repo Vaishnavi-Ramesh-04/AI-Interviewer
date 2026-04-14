@@ -6,6 +6,7 @@ import { ArrowLeft, Upload, FileText, Briefcase, GraduationCap, Play } from "luc
 import Link from "next/link";
 
 export default function InterviewSetupPage() {
+    const [showEndDialog, setShowEndDialog] = useState(false);
   const router = useRouter();
   const [role, setRole] = useState("");
   const [education, setEducation] = useState("");
@@ -47,8 +48,8 @@ export default function InterviewSetupPage() {
 
   const handleStart = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!role || !education) {
-      setError("Please fill out your target role and education level.");
+    if (!role.trim() || !education.trim()) {
+      setError("Please fill out your target role and education level. Education is required.");
       return;
     }
 
@@ -58,6 +59,16 @@ export default function InterviewSetupPage() {
     sessionStorage.setItem("interview_cv", cvText || "");
 
     router.push("/interview");
+  };
+
+  const handleEnd = () => {
+    // Clear any session storage/context if needed
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("interview_role");
+      sessionStorage.removeItem("interview_education");
+      sessionStorage.removeItem("interview_cv");
+    }
+    router.push("/dashboard");
   };
 
   return (
@@ -94,7 +105,7 @@ export default function InterviewSetupPage() {
                {/* Role */}
                <div>
                  <label htmlFor="role" className="flex items-center text-sm font-bold mb-3">
-                   <Briefcase className="w-4 h-4 mr-2 text-primary" /> Target Role
+                   <Briefcase className="w-4 h-4 mr-2 text-primary" /> Target Role <span className="text-red-500 ml-1">*</span>
                  </label>
                  <input
                    id="role"
@@ -110,7 +121,7 @@ export default function InterviewSetupPage() {
                {/* Education */}
                <div>
                  <label htmlFor="education" className="flex items-center text-sm font-bold mb-3">
-                   <GraduationCap className="w-4 h-4 mr-2 text-primary" /> Education Level
+                   <GraduationCap className="w-4 h-4 mr-2 text-primary" /> Education Level <span className="text-red-500 ml-1">*</span>
                  </label>
                  <input
                    id="education"
@@ -119,6 +130,7 @@ export default function InterviewSetupPage() {
                    value={education}
                    onChange={(e) => setEducation(e.target.value)}
                    required
+                   aria-required="true"
                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:bg-white focus:ring-4 focus:ring-blue-100 transition-all"
                  />
                </div>
@@ -183,6 +195,8 @@ export default function InterviewSetupPage() {
             </button>
           </div>
         </form>
+
+        {/* ...existing code... */}
       </div>
     </div>
   );
